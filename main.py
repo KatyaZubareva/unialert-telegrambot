@@ -6,7 +6,7 @@ def show_schedule():
     pass
 
 def main():
-    app = ApplicationBuilder().token("7604608554:AAHVCTY61aYBWxzra8lbCiSpD9dxsIUdS2U").build()
+    app = ApplicationBuilder().token("TELEGRAM_BOT_API").build()
 
     app.run_polling()
 
