@@ -1,10 +1,18 @@
-import asyncio
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, CallbackQueryHandler
-from playwright.async_api import async_playwright
-import pickle
 import os
+import pickle
 from dotenv import load_dotenv
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    CallbackQueryHandler,
+    ContextTypes
+)
+from playwright.async_api import async_playwright
+import asyncio
+import nest_asyncio
+
+nest_asyncio.apply()
 
 load_dotenv()
 TELEGRAM_BOT_API = os.getenv("TELEGRAM_BOT_API")
@@ -44,6 +52,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📅 Показать расписание", callback_data="get_schedule")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
+    
     await update.message.reply_text(
         "Привет! Я бот ИТМО 🏫\n\n"
         "Я могу присылать тебе актуальное расписание занятий.\n"
@@ -57,12 +66,14 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     await query.edit_message_text("Получаю расписание... ⏳")
-    schedule_text = await fetch_schedule()
     
-    if len(schedule_text) > 4000:
-        schedule_text = schedule_text[:4000] + "\n\n(расписание обрезано)"
-    
-    await query.edit_message_text(f"📌 Расписание:\n\n{schedule_text}")
+    try:
+        schedule_text = await fetch_schedule()
+        if len(schedule_text) > 4000:
+            schedule_text = schedule_text[:4000] + "\n\n(расписание обрезано)"
+        await query.edit_message_text(f"📌 Расписание:\n\n{schedule_text}")
+    except Exception as e:
+        await query.edit_message_text(f"❌ Ошибка при получении расписания:\n{e}")
 
 
 async def main():
@@ -75,4 +86,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.get_event_loop().run_until_complete(main())
